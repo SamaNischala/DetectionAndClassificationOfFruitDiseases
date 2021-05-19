@@ -94,6 +94,30 @@ def svmClassifier():
     text.insert(END, 'SVM Algorithm Specificity : ' + str(specificity * 100) + "\n")
     classifier = cls
 
+def Classification():
+    name = filedialog.askopenfilename(initialdir="testImages")
+    img = cv2.imread(name)
+    img = cv2.resize(img, (128, 128))
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    pixel_vals = img.reshape((-1, 3))
+    pixel_vals = np.float32(pixel_vals)
+    criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 0.85)
+    retval, labels, centers = cv2.kmeans(pixel_vals, 6, None, criteria, 10, cv2.KMEANS_RANDOM_CENTERS)
+    centers = np.uint8(centers)
+    segmented_data = centers[labels.flatten()]
+    temp = []
+    temp.append(segmented_data.ravel())
+    temp = np.array(temp)
+    predict = classifier.predict(temp)[0]
+    img = cv2.imread(name);
+    img = cv2.resize(img, (500, 500))
+    disease = 'Disease'
+    if fruits_disease[predict] == 'healthy':
+        disease = ''
+    cv2.putText(img, 'Fruit classify as ' + fruits_disease[predict] + " " + disease, (10, 30), cv2.FONT_HERSHEY_SIMPLEX,
+                0.6, (0, 255, 255), 2)
+    cv2.imshow("Classification Result : " + 'Fruit classified as ' + fruits_disease[predict] + " " + disease, img)
+    cv2.waitKey(0)
 
 def close():
     main.destroy()
@@ -131,6 +155,10 @@ svmButton = Button(main, text="Train SVM Classifier", command=svmClassifier)
 svmButton.place(x=50, y=600)
 svmButton.config(font=font1)
 
+
+classifyButton = Button(main, text="Upload Test Image & Classification", command=Classification)
+classifyButton.place(x=250, y=600)
+classifyButton.config(font=font1)
 
 main.config(bg='white')
 main.mainloop()
