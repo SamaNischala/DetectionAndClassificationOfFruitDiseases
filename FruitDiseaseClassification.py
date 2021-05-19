@@ -64,6 +64,35 @@ def Preprocessing():
     Y = np.load("features/labels.txt.npy")
     text.insert(END, "Total preprocess images are : " + str(X.shape[0]) + "\n\n")
 
+def featuresExtraction():
+    global X_train, X_test, y_train, y_test
+    global X, Y
+    ind = random.randint(0, (len(X) - 1))
+    img = X[ind].reshape(128, 128, 3)
+    cv2.imshow('Image after KMEANS & Feature Extraction', cv2.resize(img, (450, 450)))
+    cv2.waitKey(0)
+
+    indices = np.arange(X.shape[0])
+    np.random.shuffle(indices)
+    X = X[indices]
+    Y = Y[indices]
+    X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.2, random_state=0)
+    text.insert(END, "Features Extraction Process Completed\n")
+    text.insert(END, "Total images used to train SVM is : " + str(X_train.shape[0]) + "\n")
+    text.insert(END, "Total images used to test  SVM is : " + str(X_test.shape[0]) + "\n\n")
+
+def svmClassifier():
+    global classifier
+    cls = svm.SVC(C=12, gamma='scale', kernel='rbf', random_state=0)
+    cls.fit(X, Y)
+    prediction = cls.predict(X_test)
+    svm_acc = accuracy_score(y_test, prediction) * 100
+    text.insert(END, "SVM Accuracy : " + str(svm_acc) + "\n")
+    cm = confusion_matrix(y_test, prediction)
+    total = sum(sum(cm))
+    specificity = cm[1, 1] / (cm[1, 0] + cm[1, 1])
+    text.insert(END, 'SVM Algorithm Specificity : ' + str(specificity * 100) + "\n")
+    classifier = cls
 
 
 def close():
@@ -97,13 +126,11 @@ featuresButton = Button(main, text="Features Extraction", command=featuresExtrac
 featuresButton.place(x=650, y=550)
 featuresButton.config(font=font1)
 
+
 svmButton = Button(main, text="Train SVM Classifier", command=svmClassifier)
 svmButton.place(x=50, y=600)
 svmButton.config(font=font1)
 
-classifyButton = Button(main, text="Upload Test Image & Classification", command=Classification)
-classifyButton.place(x=250, y=600)
-classifyButton.config(font=font1)
 
 main.config(bg='white')
 main.mainloop()
